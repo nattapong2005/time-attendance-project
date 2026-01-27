@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom'
+import {
+    Home,
+    LayoutDashboard,
+    QrCode,
+    FileText,
+    Info,
+    LogOut,
+    Menu,
+    X,
+    Shield
+} from 'lucide-react'
 
 const UserLayout = () => {
     const navigate = useNavigate()
@@ -16,13 +27,7 @@ const UserLayout = () => {
             return
         }
 
-        const parsedUser = JSON.parse(userData)
-        setUser(parsedUser)
-
-        // Redirect admin to admin dashboard
-        if (parsedUser.role === 'ADMIN') {
-            navigate('/admin/dashboard')
-        }
+        setUser(JSON.parse(userData))
     }, [navigate])
 
     const handleSignOut = () => {
@@ -32,95 +37,109 @@ const UserLayout = () => {
     }
 
     const navLinks = [
-        { path: '/home', label: 'หน้าหลัก', icon: '🏠' },
-        { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/scan-qr-code', label: 'Scan QR', icon: '📱' },
-        { path: '/leave-request', label: 'ขอลา', icon: '📝' },
+        { path: '/home', label: 'หน้าหลัก', icon: Home },
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/scan-qr-code', label: 'สแกน QR', icon: QrCode },
+        { path: '/leave-request', label: 'ขอลา', icon: FileText },
+        { path: '/about', label: 'เกี่ยวกับ', icon: Info },
     ]
 
     const isActive = (path) => location.pathname === path
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Header */}
-            <header className="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6">
                     <div className="flex justify-between items-center h-16">
                         {/* Logo */}
                         <Link to="/home" className="flex items-center gap-2">
-                            <span className="text-2xl">⏰</span>
-                            <span className="text-xl font-bold hidden sm:block">ระบบลงเวลาฝึกงาน</span>
+                            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                                <Shield className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="font-bold text-slate-900 hidden sm:block">Time Attendance</span>
                         </Link>
 
-                        {/* Desktop Navigation */}
-                        <nav className="hidden md:flex items-center gap-6">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.path}
-                                    to={link.path}
-                                    className={`flex items-center gap-1 px-3 py-2 rounded-lg transition ${isActive(link.path)
-                                            ? 'bg-white/20 font-semibold'
-                                            : 'hover:bg-white/10'
-                                        }`}
-                                >
-                                    <span>{link.icon}</span>
-                                    <span>{link.label}</span>
-                                </Link>
-                            ))}
+                        {/* Desktop Nav */}
+                        <nav className="hidden md:flex items-center gap-1">
+                            {navLinks.map((link) => {
+                                const Icon = link.icon
+                                return (
+                                    <Link
+                                        key={link.path}
+                                        to={link.path}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(link.path)
+                                                ? 'bg-slate-100 text-slate-900'
+                                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                            }`}
+                                    >
+                                        <Icon className="w-4 h-4" />
+                                        {link.label}
+                                    </Link>
+                                )
+                            })}
                         </nav>
 
                         {/* User Menu */}
-                        <div className="flex items-center gap-4">
-                            <span className="hidden sm:block text-sm">{user?.name}</span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm text-slate-600 hidden sm:block">{user?.name}</span>
                             <button
                                 onClick={handleSignOut}
-                                className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm font-medium"
+                                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                             >
-                                ออกจากระบบ
+                                <LogOut className="w-4 h-4" />
+                                <span className="hidden sm:inline">ออกจากระบบ</span>
                             </button>
 
-                            {/* Mobile Menu Button */}
+                            {/* Mobile Menu Toggle */}
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="md:hidden p-2 rounded-lg hover:bg-white/10"
+                                className="md:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-600"
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
+                                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                             </button>
                         </div>
                     </div>
-
-                    {/* Mobile Navigation */}
-                    {isMobileMenuOpen && (
-                        <nav className="md:hidden pb-4 space-y-2">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.path}
-                                    to={link.path}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className={`flex items-center gap-2 px-4 py-3 rounded-lg ${isActive(link.path)
-                                            ? 'bg-white/20 font-semibold'
-                                            : 'hover:bg-white/10'
-                                        }`}
-                                >
-                                    <span>{link.icon}</span>
-                                    <span>{link.label}</span>
-                                </Link>
-                            ))}
-                        </nav>
-                    )}
                 </div>
+
+                {/* Mobile Nav */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden border-t border-slate-200 bg-white">
+                        <nav className="px-4 py-3 space-y-1">
+                            {navLinks.map((link) => {
+                                const Icon = link.icon
+                                return (
+                                    <Link
+                                        key={link.path}
+                                        to={link.path}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(link.path)
+                                                ? 'bg-slate-100 text-slate-900'
+                                                : 'text-slate-600 hover:bg-slate-50'
+                                            }`}
+                                    >
+                                        <Icon className="w-5 h-5" />
+                                        {link.label}
+                                    </Link>
+                                )
+                            })}
+                        </nav>
+                    </div>
+                )}
             </header>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <Outlet />
+            <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6">
+                <div className="page-enter">
+                    <Outlet />
+                </div>
             </main>
 
             {/* Footer */}
-            <footer className="bg-gray-100 text-center py-4 text-gray-500 text-sm mt-auto">
-                &copy; {new Date().getFullYear()} ระบบลงเวลาฝึกงาน. All rights reserved.
+            <footer className="bg-white border-t border-slate-200 py-4">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center text-sm text-slate-500">
+                    © {new Date().getFullYear()} Time Attendance System
+                </div>
             </footer>
         </div>
     )

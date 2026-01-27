@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Building2, Plus, Edit, Trash2, X } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -9,7 +10,6 @@ const DepartmentManagement = () => {
     const [showModal, setShowModal] = useState(false)
     const [editingDept, setEditingDept] = useState(null)
 
-    // Form State
     const [name, setName] = useState('')
     const [error, setError] = useState('')
 
@@ -89,7 +89,7 @@ const DepartmentManagement = () => {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="spinner"></div>
             </div>
         )
     }
@@ -97,47 +97,55 @@ const DepartmentManagement = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-2xl font-bold text-gray-800">จัดการแผนก</h2>
+                <div className="flex items-center gap-2">
+                    <Building2 className="w-6 h-6 text-slate-400" />
+                    <h1 className="text-2xl font-bold text-slate-900">จัดการแผนก</h1>
+                </div>
                 <button
                     onClick={openCreateModal}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2"
+                    className="px-4 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors flex items-center gap-2"
                 >
-                    <span>+</span>
-                    <span>เพิ่มแผนก</span>
+                    <Plus className="w-5 h-5" />
+                    เพิ่มแผนก
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 {departments.length === 0 ? (
-                    <p className="text-center py-8 text-gray-500">ไม่พบข้อมูลแผนก</p>
+                    <div className="empty-state">
+                        <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="empty-state-text">ไม่พบข้อมูลแผนก</p>
+                    </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
+                        <table className="table">
+                            <thead>
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">ID</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">ชื่อแผนก</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">จัดการ</th>
+                                    <th>ID</th>
+                                    <th>ชื่อแผนก</th>
+                                    <th>จัดการ</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody>
                                 {departments.map((dept) => (
-                                    <tr key={dept.id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3 text-sm text-gray-700 w-20">{dept.id}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700 font-medium">{dept.name}</td>
-                                        <td className="px-4 py-3 space-x-2 w-40">
-                                            <button
-                                                onClick={() => openEditModal(dept)}
-                                                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                                            >
-                                                แก้ไข
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(dept.id)}
-                                                className="text-red-600 hover:text-red-800 text-sm font-medium"
-                                            >
-                                                ลบ
-                                            </button>
+                                    <tr key={dept.id}>
+                                        <td className="w-20">{dept.id}</td>
+                                        <td className="font-medium text-slate-900">{dept.name}</td>
+                                        <td className="w-32">
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => openEditModal(dept)}
+                                                    className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(dept.id)}
+                                                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -149,39 +157,43 @@ const DepartmentManagement = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)}></div>
-                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">
-                            {editingDept ? 'แก้ไขแผนก' : 'เพิ่มแผนกใหม่'}
-                        </h3>
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal-content p-6 max-w-sm" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-slate-900">
+                                {editingDept ? 'แก้ไขแผนก' : 'เพิ่มแผนกใหม่'}
+                            </h2>
+                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg">
+                                <X className="w-5 h-5 text-slate-500" />
+                            </button>
+                        </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อแผนก</label>
+                            <div className="form-group">
+                                <label className="form-label">ชื่อแผนก</label>
                                 <input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                                    className="input"
                                     placeholder="เช่น IT, HR, Marketing"
                                     required
                                 />
                             </div>
 
-                            {error && <p className="text-red-500 text-sm">{error}</p>}
+                            {error && <div className="alert alert-danger text-sm">{error}</div>}
 
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex gap-3 pt-4 border-t border-slate-100">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                    className="flex-1 py-2.5 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                                 >
                                     ยกเลิก
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                    className="flex-1 py-2.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
                                 >
                                     {editingDept ? 'บันทึก' : 'เพิ่ม'}
                                 </button>

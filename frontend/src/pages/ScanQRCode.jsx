@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Html5QrcodeScanner } from 'html5-qrcode'
 import { QRCodeCanvas } from 'qrcode.react'
 import axios from 'axios'
+import { QrCode, Camera, Clock, RefreshCw, LogIn, LogOut } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -151,44 +152,53 @@ const ScanQRCode = () => {
   const onScanFailure = () => { }
 
   const formatTime = (dateString) => {
-    if (!dateString) return '-'
+    if (!dateString) return '--:--'
     return new Date(dateString).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 text-center">สแกน QR Code ลงเวลา</h2>
+      <h1 className="text-2xl font-bold text-slate-900 text-center">สแกน QR Code ลงเวลา</h1>
 
       {/* Today Status */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">สถานะวันนี้</h3>
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-5 h-5 text-slate-400" />
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">สถานะวันนี้</h2>
+        </div>
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-green-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600">เข้างาน</p>
-            <p className="text-xl font-bold text-green-600">{formatTime(todayAttendance?.checkIn)}</p>
+          <div className="bg-slate-50 rounded-xl p-4 text-center">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">เข้างาน</p>
+            <p className="text-xl font-bold text-slate-900 font-mono">{formatTime(todayAttendance?.checkIn)}</p>
           </div>
-          <div className="bg-orange-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600">ออกงาน</p>
-            <p className="text-xl font-bold text-orange-600">{formatTime(todayAttendance?.checkOut)}</p>
+          <div className="bg-slate-50 rounded-xl p-4 text-center">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">ออกงาน</p>
+            <p className="text-xl font-bold text-slate-900 font-mono">{formatTime(todayAttendance?.checkOut)}</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* QR Code Display */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">QR Code สำหรับสแกน</h3>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <div className="flex items-center gap-2 mb-4 justify-center">
+            <QrCode className="w-5 h-5 text-slate-400" />
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">QR Code สำหรับสแกน</h2>
+          </div>
           <div className="flex flex-col items-center">
             {qrData && (
               <>
-                <div className="p-4 bg-white rounded-lg shadow-inner">
-                  <QRCodeCanvas value={qrData} size={200} />
+                <div className="p-4 bg-white rounded-xl border border-slate-200">
+                  <QRCodeCanvas value={qrData} size={180} />
                 </div>
-                <p className="mt-3 text-gray-600">หมดอายุใน <span className="font-bold text-indigo-600">{countdown}</span> วินาที</p>
+                <p className="mt-4 text-sm text-slate-600">
+                  หมดอายุใน <span className="font-bold text-slate-900 font-mono">{countdown}</span> วินาที
+                </p>
                 <button
                   onClick={generateQRCode}
-                  className="mt-3 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                  className="mt-3 px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors inline-flex items-center gap-2"
                 >
+                  <RefreshCw className="w-4 h-4" />
                   สร้างใหม่
                 </button>
               </>
@@ -197,38 +207,43 @@ const ScanQRCode = () => {
         </div>
 
         {/* Scanner */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">สแกนด้วยกล้อง</h3>
-          <div id="reader" className="overflow-hidden rounded-lg"></div>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <div className="flex items-center gap-2 mb-4 justify-center">
+            <Camera className="w-5 h-5 text-slate-400" />
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">สแกนด้วยกล้อง</h2>
+          </div>
+          <div id="reader" className="overflow-hidden rounded-xl"></div>
         </div>
       </div>
 
       {/* Message */}
       {message && (
-        <div className={`p-4 rounded-xl text-center ${messageType === 'success' ? 'bg-green-100 text-green-700' :
-            messageType === 'error' ? 'bg-red-100 text-red-700' :
-              'bg-blue-100 text-blue-700'
+        <div className={`p-4 rounded-xl text-center text-sm font-medium ${messageType === 'success' ? 'bg-green-50 text-green-700' :
+            messageType === 'error' ? 'bg-red-50 text-red-700' :
+              'bg-blue-50 text-blue-700'
           }`}>
           {message}
         </div>
       )}
 
       {/* Manual Buttons */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">หรือกดปุ่มลงเวลา</h3>
-        <div className="flex flex-col sm:flex-row gap-4">
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4 text-center">หรือกดปุ่มลงเวลา</h2>
+        <div className="grid grid-cols-2 gap-4">
           <button
             onClick={handleCheckIn}
             disabled={isLoading || todayAttendance?.checkIn}
-            className="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50"
+            className="py-3 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
           >
+            <LogIn className="w-5 h-5" />
             ลงเวลาเข้างาน
           </button>
           <button
             onClick={handleCheckOut}
             disabled={isLoading || !todayAttendance?.checkIn || todayAttendance?.checkOut}
-            className="flex-1 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition disabled:opacity-50"
+            className="py-3 bg-white text-slate-700 border border-slate-300 rounded-xl font-medium hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
           >
+            <LogOut className="w-5 h-5" />
             ลงเวลาออกงาน
           </button>
         </div>

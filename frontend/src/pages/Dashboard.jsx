@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { User, Calendar, TrendingUp, AlertCircle, Clock } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -53,83 +54,99 @@ const Dashboard = () => {
 
   const getStatusBadge = (record) => {
     if (record.status === 'ABSENT') {
-      return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">ขาด</span>
+      return <span className="badge badge-danger">ขาด</span>
     }
     if (record.isLate) {
-      return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">มาสาย</span>
+      return <span className="badge badge-warning">มาสาย</span>
     }
-    return <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">ปกติ</span>
+    return <span className="badge badge-success">ปกติ</span>
   }
+
+  const statCards = [
+    { label: 'มาปกติ', value: stats.present, color: 'text-slate-900', icon: TrendingUp, bgColor: 'bg-green-50', iconColor: 'text-green-600' },
+    { label: 'มาสาย', value: stats.late, color: 'text-amber-600', icon: Clock, bgColor: 'bg-amber-50', iconColor: 'text-amber-600' },
+    { label: 'ขาด', value: stats.absent, color: 'text-red-600', icon: AlertCircle, bgColor: 'bg-red-50', iconColor: 'text-red-600' },
+  ]
 
   return (
     <div className="space-y-6">
       {/* User Info */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">ข้อมูลผู้ใช้</h2>
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <User className="w-5 h-5 text-slate-400" />
+          <h2 className="text-lg font-semibold text-slate-900">ข้อมูลผู้ใช้</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <p className="text-sm text-gray-500">ชื่อ</p>
-            <p className="font-semibold text-gray-800">{user?.name || '-'}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">ชื่อ</p>
+            <p className="text-sm font-medium text-slate-900">{user?.name || '-'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">บทบาท</p>
-            <p className="font-semibold text-gray-800">{user?.role || '-'}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">บทบาท</p>
+            <p className="text-sm font-medium text-slate-900">{user?.role || '-'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">ID</p>
-            <p className="font-semibold text-gray-800">{user?.id || '-'}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">ID</p>
+            <p className="text-sm font-medium text-slate-900">{user?.id || '-'}</p>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
-          <p className="text-sm text-gray-500">มาปกติ</p>
-          <p className="text-3xl font-bold text-green-600">{stats.present}</p>
-          <p className="text-xs text-gray-400">วัน</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
-          <p className="text-sm text-gray-500">มาสาย</p>
-          <p className="text-3xl font-bold text-yellow-600">{stats.late}</p>
-          <p className="text-xs text-gray-400">วัน</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-red-500">
-          <p className="text-sm text-gray-500">ขาด</p>
-          <p className="text-3xl font-bold text-red-600">{stats.absent}</p>
-          <p className="text-xs text-gray-400">วัน</p>
-        </div>
+        {statCards.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.label} className="bg-white rounded-2xl border border-slate-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{stat.label}</p>
+                  <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className="text-xs text-slate-400 mt-1">วัน</p>
+                </div>
+                <div className={`w-12 h-12 rounded-xl ${stat.bgColor} flex items-center justify-center`}>
+                  <Icon className={`w-6 h-6 ${stat.iconColor}`} />
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Attendance History */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">ประวัติการลงเวลา</h3>
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+          <Calendar className="w-5 h-5 text-slate-400" />
+          <h3 className="text-lg font-semibold text-slate-900">ประวัติการลงเวลา</h3>
+        </div>
 
         {isLoading ? (
-          <div className="text-center py-8">
-            <div className="inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-2 text-gray-500">กำลังโหลด...</p>
+          <div className="flex items-center justify-center py-12">
+            <div className="spinner"></div>
           </div>
         ) : attendanceHistory.length === 0 ? (
-          <p className="text-center py-8 text-gray-500">ยังไม่มีประวัติการลงเวลา</p>
+          <div className="empty-state">
+            <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <p className="empty-state-text">ยังไม่มีประวัติการลงเวลา</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+            <table className="table">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">วันที่</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">เข้างาน</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">ออกงาน</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">สถานะ</th>
+                  <th>วันที่</th>
+                  <th>เข้างาน</th>
+                  <th>ออกงาน</th>
+                  <th>สถานะ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody>
                 {attendanceHistory.slice(0, 10).map((record) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-700">{formatDate(record.date)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{formatTime(record.checkIn)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{formatTime(record.checkOut)}</td>
-                    <td className="px-4 py-3">{getStatusBadge(record)}</td>
+                  <tr key={record.id}>
+                    <td className="font-medium text-slate-900">{formatDate(record.date)}</td>
+                    <td className="font-mono">{formatTime(record.checkIn)}</td>
+                    <td className="font-mono">{formatTime(record.checkOut)}</td>
+                    <td>{getStatusBadge(record)}</td>
                   </tr>
                 ))}
               </tbody>

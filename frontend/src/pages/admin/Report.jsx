@@ -1,39 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { BarChart3, Users, Building2, MapPin, TrendingUp, AlertTriangle, Clock, Calendar } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-
-const DashboardStats = ({ stats }) => {
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500">
-                <p className="text-gray-500 text-sm">นักศึกษาทั้งหมด</p>
-                <p className="text-3xl font-bold text-gray-800">{stats.totalUsers || 0}</p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
-                <p className="text-gray-500 text-sm">แผนกทั้งหมด</p>
-                <p className="text-3xl font-bold text-gray-800">{stats.totalDepartments || 0}</p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
-                <p className="text-gray-500 text-sm">สถานที่ฝึกงาน</p>
-                <p className="text-3xl font-bold text-gray-800">{stats.totalLocations || 0}</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-                <p className="text-gray-500 text-sm">เข้างานวันนี้</p>
-                <p className="text-3xl font-bold text-gray-800">{stats.checkInsToday || 0}</p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
-                <p className="text-gray-500 text-sm">ขาดงานวันนี้ (บันทึกแล้ว)</p>
-                <p className="text-3xl font-bold text-gray-800">{stats.absentToday || 0}</p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
-                <p className="text-gray-500 text-sm">คำขอลารออนุมัติ</p>
-                <p className="text-3xl font-bold text-gray-800">{stats.pendingLeaves || 0}</p>
-            </div>
-        </div>
-    )
-}
 
 const Report = () => {
     const [stats, setStats] = useState({})
@@ -81,28 +50,69 @@ const Report = () => {
         'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
     ]
 
+    const statCards = [
+        { label: 'นักศึกษาทั้งหมด', value: stats.totalUsers || 0, icon: Users, bgColor: 'bg-slate-100', color: 'text-slate-900' },
+        { label: 'แผนกทั้งหมด', value: stats.totalDepartments || 0, icon: Building2, bgColor: 'bg-blue-50', color: 'text-blue-600' },
+        { label: 'สถานที่ฝึกงาน', value: stats.totalLocations || 0, icon: MapPin, bgColor: 'bg-purple-50', color: 'text-purple-600' },
+        { label: 'เข้างานวันนี้', value: stats.checkInsToday || 0, icon: TrendingUp, bgColor: 'bg-green-50', color: 'text-green-600' },
+        { label: 'ขาดงานวันนี้', value: stats.absentToday || 0, icon: AlertTriangle, bgColor: 'bg-red-50', color: 'text-red-600' },
+        { label: 'คำขอลารออนุมัติ', value: stats.pendingLeaves || 0, icon: Clock, bgColor: 'bg-amber-50', color: 'text-amber-600' },
+    ]
+
+    const summaryCards = [
+        { label: 'มาปกติ', value: summary.PRESENT || 0, bgColor: 'bg-slate-50', color: 'text-slate-900' },
+        { label: 'มาสาย', value: summary.LATE || 0, bgColor: 'bg-amber-50', color: 'text-amber-600' },
+        { label: 'ขาดงาน', value: summary.ABSENT || 0, bgColor: 'bg-red-50', color: 'text-red-600' },
+        { label: 'ลา', value: summary.LEAVE || 0, bgColor: 'bg-blue-50', color: 'text-blue-600' },
+    ]
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="spinner"></div>
             </div>
         )
     }
 
     return (
-        <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-gray-800">รายงานและสถิติ</h2>
+        <div className="space-y-6">
+            <div className="flex items-center gap-2">
+                <BarChart3 className="w-6 h-6 text-slate-400" />
+                <h1 className="text-2xl font-bold text-slate-900">รายงานและสถิติ</h1>
+            </div>
 
-            <DashboardStats stats={stats} />
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {statCards.map((stat) => {
+                    const Icon = stat.icon
+                    return (
+                        <div key={stat.label} className="bg-white rounded-2xl border border-slate-200 p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{stat.label}</p>
+                                    <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                                </div>
+                                <div className={`w-12 h-12 rounded-xl ${stat.bgColor} flex items-center justify-center`}>
+                                    <Icon className={`w-6 h-6 ${stat.color}`} />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                    <h3 className="text-lg font-bold text-gray-800">สรุปการลงเวลาประจำเดือน</h3>
+            {/* Monthly Summary */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-slate-400" />
+                        <h2 className="text-lg font-semibold text-slate-900">สรุปการลงเวลาประจำเดือน</h2>
+                    </div>
                     <div className="flex gap-2">
                         <select
                             value={month}
                             onChange={(e) => setMonth(parseInt(e.target.value))}
-                            className="px-3 py-2 border rounded-lg outline-none focus:border-indigo-500"
+                            className="input w-auto"
                         >
                             {months.map((m, i) => (
                                 <option key={i} value={i + 1}>{m}</option>
@@ -111,32 +121,22 @@ const Report = () => {
                         <select
                             value={year}
                             onChange={(e) => setYear(parseInt(e.target.value))}
-                            className="px-3 py-2 border rounded-lg outline-none focus:border-indigo-500"
+                            className="input w-auto"
                         >
-                            {[2024, 2025, 2026].map(y => (
+                            {[2024, 2025, 2026, 2027].map(y => (
                                 <option key={y} value={y}>{y}</option>
                             ))}
                         </select>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    <div className="p-4 bg-green-50 rounded-lg">
-                        <p className="text-sm text-gray-500">มาปกติ</p>
-                        <p className="text-2xl font-bold text-green-600">{summary.PRESENT || 0}</p>
-                    </div>
-                    <div className="p-4 bg-yellow-50 rounded-lg">
-                        <p className="text-sm text-gray-500">มาสาย</p>
-                        <p className="text-2xl font-bold text-yellow-600">{summary.LATE || 0}</p>
-                    </div>
-                    <div className="p-4 bg-red-50 rounded-lg">
-                        <p className="text-sm text-gray-500">ขาดงาน</p>
-                        <p className="text-2xl font-bold text-red-600">{summary.ABSENT || 0}</p>
-                    </div>
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-gray-500">ลา</p>
-                        <p className="text-2xl font-bold text-blue-600">{summary.LEAVE || 0}</p>
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {summaryCards.map((card) => (
+                        <div key={card.label} className={`${card.bgColor} rounded-xl p-4 text-center`}>
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{card.label}</p>
+                            <p className={`text-2xl font-bold ${card.color}`}>{card.value}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

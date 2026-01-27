@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Clock, Calendar, Filter } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -49,14 +50,18 @@ const AttendanceManagement = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-2xl font-bold text-gray-800">จัดการการลงเวลา</h2>
+                <div className="flex items-center gap-2">
+                    <Clock className="w-6 h-6 text-slate-400" />
+                    <h1 className="text-2xl font-bold text-slate-900">จัดการการลงเวลา</h1>
+                </div>
 
                 {/* Filters */}
-                <div className="flex gap-3">
+                <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-slate-400" />
                     <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                        className="input w-auto"
                     >
                         {months.map((month, index) => (
                             <option key={index} value={index + 1}>{month}</option>
@@ -65,7 +70,7 @@ const AttendanceManagement = () => {
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                        className="input w-auto"
                     >
                         {[2024, 2025, 2026, 2027].map(year => (
                             <option key={year} value={year}>{year}</option>
@@ -74,44 +79,44 @@ const AttendanceManagement = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-64">
-                        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="spinner"></div>
                     </div>
                 ) : attendance.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                        <p className="text-4xl mb-4">📅</p>
-                        <p>ไม่มีข้อมูลการลงเวลาในเดือนนี้</p>
+                    <div className="empty-state">
+                        <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="empty-state-text">ไม่มีข้อมูลการลงเวลาในเดือนนี้</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
+                        <table className="table">
+                            <thead>
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">ชื่อ</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">รหัสนักศึกษา</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">วันที่</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">เข้างาน</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">ออกงาน</th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">สถานะ</th>
+                                    <th>ชื่อ</th>
+                                    <th>รหัสนักศึกษา</th>
+                                    <th>วันที่</th>
+                                    <th>เข้างาน</th>
+                                    <th>ออกงาน</th>
+                                    <th>สถานะ</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody>
                                 {attendance.map((record) => (
-                                    <tr key={record.id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3 text-sm text-gray-700 font-medium">{record.user?.name || '-'}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{record.user?.studentId || '-'}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatDate(record.date)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatTime(record.checkIn)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatTime(record.checkOut)}</td>
-                                        <td className="px-4 py-3">
+                                    <tr key={record.id}>
+                                        <td className="font-medium text-slate-900">{record.user?.name || '-'}</td>
+                                        <td>{record.user?.studentId || '-'}</td>
+                                        <td>{formatDate(record.date)}</td>
+                                        <td className="font-mono">{formatTime(record.checkIn)}</td>
+                                        <td className="font-mono">{formatTime(record.checkOut)}</td>
+                                        <td>
                                             {record.status === 'ABSENT' ? (
-                                                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">ขาด</span>
+                                                <span className="badge badge-danger">ขาด</span>
                                             ) : record.isLate ? (
-                                                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">มาสาย</span>
+                                                <span className="badge badge-warning">มาสาย</span>
                                             ) : (
-                                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">ปกติ</span>
+                                                <span className="badge badge-success">ปกติ</span>
                                             )}
                                         </td>
                                     </tr>

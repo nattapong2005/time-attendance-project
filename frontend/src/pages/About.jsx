@@ -1,59 +1,49 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { CheckCircle, QrCode, Clock, FileText } from 'lucide-react'
 
 const About = () => {
-  const navigate = useNavigate()
-
-  const handleSignOut = () => {
-    // แค่กลับไปหน้า Login ไม่ลบ user
-    navigate('/login')
-  }
+  const features = [
+    { icon: QrCode, label: 'รองรับการสแกน QR Code' },
+    { icon: Clock, label: 'ระบบบันทึกเวลาอัตโนมัติ' },
+    { icon: FileText, label: 'ระบบขอลาออนไลน์' },
+    { icon: CheckCircle, label: 'รายงานสรุปการลงเวลา' },
+  ]
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Navbar */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">MyWebApp</h1>
-          <nav className="space-x-6 flex items-center">
-            <Link to="/home" className="hover:underline">
-              Home
-            </Link>
-            <Link to="/about" className="hover:underline">
-              About
-            </Link>
-            <Link to="/dashboard" className="hover:underline">
-              Dashboard
-            </Link>
-            <Link to="/scan-qr-code" className="hover:underline">
-              Scan QR Code
-            </Link>
-            {/* Sign Out */}
-            <button
-              onClick={handleSignOut}
-              className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition ml-4"
-            >
-              ออกจากระบบ
-            </button>
-          </nav>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-slate-900">เกี่ยวกับเรา</h1>
+
+      <div className="bg-white rounded-2xl border border-slate-200 p-8">
+        <div className="max-w-2xl">
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">
+            ระบบบันทึกเวลาฝึกงาน
+          </h2>
+          <p className="text-slate-600 leading-relaxed mb-4">
+            ระบบนี้ถูกพัฒนาขึ้นเพื่อช่วยให้การบันทึกเวลาเข้า-ออกงานของนักศึกษาฝึกงาน
+            เป็นไปอย่างสะดวกและมีประสิทธิภาพ รองรับการสแกน QR Code และการลงเวลาแบบ Manual
+          </p>
+          <p className="text-slate-600 leading-relaxed mb-4">
+            สามารถติดตามประวัติการลงเวลา ขอลา และดูรายงานสรุปได้ตลอดเวลา
+          </p>
+
+          <div className="mt-6 pt-6 border-t border-slate-100">
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">คุณสมบัติหลัก</h3>
+            <ul className="space-y-3">
+              {features.map((feature, index) => {
+                const Icon = feature.icon
+                return (
+                  <li key={index} className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-green-600" />
+                    </div>
+                    <span className="text-slate-700">{feature.label}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
         </div>
-      </header>
-
-      {/* Body */}
-      <main className="flex-grow max-w-2xl mx-auto mt-10 p-6 bg-white rounded shadow">
-        <h1 className="text-3xl font-bold text-blue-600 mb-4">About Us</h1>
-        <p className="text-gray-700">
-          ตรงนี้ก็ยังไม่ได้เขียนอะไรเหมือนกันค
-        </p>
-        <p className="mt-4 text-gray-700">
-          ตรงนี้ก็ยังไม่ได้เขียนอะไรเหมือนกัน
-        </p>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-100 text-center py-4 text-gray-500 text-sm mt-6">
-        &copy; {new Date().getFullYear()} MyWebApp. All rights reserved.
-      </footer>
+      </div>
     </div>
   )
 }

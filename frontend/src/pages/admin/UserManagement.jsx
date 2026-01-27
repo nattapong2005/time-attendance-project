@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Users, Plus, Edit, Trash2, X } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -11,7 +12,6 @@ const UserManagement = () => {
     const [showModal, setShowModal] = useState(false)
     const [editingUser, setEditingUser] = useState(null)
 
-    // Form State
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -62,7 +62,6 @@ const UserManagement = () => {
             const token = localStorage.getItem('token')
             const headers = { Authorization: `Bearer ${token}` }
 
-            // Prepare payload
             const payload = {
                 ...formData,
                 departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
@@ -97,7 +96,7 @@ const UserManagement = () => {
         setFormData({
             name: user.name,
             email: user.email,
-            password: '', // Should be empty for edit
+            password: '',
             role: user.role,
             studentId: user.studentId || '',
             departmentId: user.departmentId || '',
@@ -120,17 +119,17 @@ const UserManagement = () => {
 
     const getRoleBadge = (role) => {
         const styles = {
-            ADMIN: 'bg-red-100 text-red-700',
-            TEACHER: 'bg-blue-100 text-blue-700',
-            STUDENT: 'bg-green-100 text-green-700'
+            ADMIN: 'badge-danger',
+            TEACHER: 'badge-info',
+            STUDENT: 'badge-success'
         }
-        return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[role]}`}>{role}</span>
+        return <span className={`badge ${styles[role]}`}>{role}</span>
     }
 
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="spinner"></div>
             </div>
         )
     }
@@ -138,52 +137,57 @@ const UserManagement = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-2xl font-bold text-gray-800">จัดการผู้ใช้</h2>
+                <div className="flex items-center gap-2">
+                    <Users className="w-6 h-6 text-slate-400" />
+                    <h1 className="text-2xl font-bold text-slate-900">จัดการผู้ใช้</h1>
+                </div>
                 <button
                     onClick={openCreateModal}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2"
+                    className="px-4 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors flex items-center gap-2"
                 >
-                    <span>+</span>
-                    <span>เพิ่มผู้ใช้</span>
+                    <Plus className="w-5 h-5" />
+                    เพิ่มผู้ใช้
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50">
+                    <table className="table">
+                        <thead>
                             <tr>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">ชื่อ</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">อีเมล</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">รหัสนักศึกษา</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">แผนก</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">บทบาท</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">จัดการ</th>
+                                <th>ชื่อ</th>
+                                <th>อีเมล</th>
+                                <th>รหัสนักศึกษา</th>
+                                <th>แผนก</th>
+                                <th>บทบาท</th>
+                                <th>จัดการ</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody>
                             {users.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50">
-                                    <td className="px-4 py-3 text-sm text-gray-700 font-medium">{user.name}</td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">{user.email}</td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">{user.studentId || '-'}</td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">{user.department?.name || '-'}</td>
-                                    <td className="px-4 py-3">{getRoleBadge(user.role)}</td>
-                                    <td className="px-4 py-3 space-x-2">
-                                        <button
-                                            onClick={() => openEditModal(user)}
-                                            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                                        >
-                                            แก้ไข
-                                        </button>
-                                        {user.role !== 'ADMIN' && (
+                                <tr key={user.id}>
+                                    <td className="font-medium text-slate-900">{user.name}</td>
+                                    <td>{user.email}</td>
+                                    <td>{user.studentId || '-'}</td>
+                                    <td>{user.department?.name || '-'}</td>
+                                    <td>{getRoleBadge(user.role)}</td>
+                                    <td>
+                                        <div className="flex items-center gap-2">
                                             <button
-                                                onClick={() => handleDelete(user.id)}
-                                                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                                onClick={() => openEditModal(user)}
+                                                className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                                             >
-                                                ลบ
+                                                <Edit className="w-4 h-4" />
                                             </button>
-                                        )}
+                                            {user.role !== 'ADMIN' && (
+                                                <button
+                                                    onClick={() => handleDelete(user.id)}
+                                                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -194,33 +198,37 @@ const UserManagement = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)}></div>
-                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">
-                            {editingUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'}
-                        </h3>
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal-content p-6" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-slate-900">
+                                {editingUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'}
+                            </h2>
+                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg">
+                                <X className="w-5 h-5 text-slate-500" />
+                            </button>
+                        </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="form-group">
+                                    <label className="form-label">ชื่อ-นามสกุล</label>
                                     <input
                                         type="text"
                                         name="name"
                                         value={formData.name}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                                        className="input"
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">บทบาท</label>
+                                <div className="form-group">
+                                    <label className="form-label">บทบาท</label>
                                     <select
                                         name="role"
                                         value={formData.role}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                                        className="input"
                                     >
                                         <option value="STUDENT">นักศึกษา</option>
                                         <option value="TEACHER">อาจารย์</option>
@@ -229,54 +237,54 @@ const UserManagement = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+                            <div className="form-group">
+                                <label className="form-label">อีเมล</label>
                                 <input
                                     type="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                                    className="input"
                                     required
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    รหัสผ่าน {editingUser && '(เว้นว่างหากไม่ต้องการเปลี่ยน)'}
+                            <div className="form-group">
+                                <label className="form-label">
+                                    รหัสผ่าน {editingUser && <span className="text-slate-400 font-normal">(เว้นว่างหากไม่ต้องการเปลี่ยน)</span>}
                                 </label>
                                 <input
                                     type="password"
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                                    className="input"
                                     {...(!editingUser && { required: true })}
                                 />
                             </div>
 
                             {formData.role === 'STUDENT' && (
                                 <>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">รหัสนักศึกษา</label>
+                                    <div className="form-group">
+                                        <label className="form-label">รหัสนักศึกษา</label>
                                         <input
                                             type="text"
                                             name="studentId"
                                             value={formData.studentId}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                                            className="input"
                                             required
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">แผนก</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="form-group">
+                                            <label className="form-label">แผนก</label>
                                             <select
                                                 name="departmentId"
                                                 value={formData.departmentId}
                                                 onChange={handleChange}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                                                className="input"
                                             >
                                                 <option value="">เลือกแผนก</option>
                                                 {departments.map(dept => (
@@ -284,13 +292,13 @@ const UserManagement = () => {
                                                 ))}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">สถานที่ฝึกงาน</label>
+                                        <div className="form-group">
+                                            <label className="form-label">สถานที่ฝึกงาน</label>
                                             <select
                                                 name="locationId"
                                                 value={formData.locationId}
                                                 onChange={handleChange}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+                                                className="input"
                                             >
                                                 <option value="">เลือกสถานที่</option>
                                                 {locations.map(loc => (
@@ -302,19 +310,19 @@ const UserManagement = () => {
                                 </>
                             )}
 
-                            {error && <p className="text-red-500 text-sm">{error}</p>}
+                            {error && <div className="alert alert-danger text-sm">{error}</div>}
 
-                            <div className="flex gap-3 pt-4 border-t border-gray-100">
+                            <div className="flex gap-3 pt-4 border-t border-slate-100">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                    className="flex-1 py-2.5 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                                 >
                                     ยกเลิก
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                    className="flex-1 py-2.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
                                 >
                                     {editingUser ? 'บันทึก' : 'สร้างผู้ใช้'}
                                 </button>
