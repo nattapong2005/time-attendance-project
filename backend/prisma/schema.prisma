@@ -43,8 +43,8 @@ model User {
   departmentId Int?
   department   Department? @relation(fields: [departmentId], references: [id])
   
-  locationId   Int?
-  internshipLocation InternshipLocation? @relation(fields: [locationId], references: [id])
+  sakaId       Int?
+  saka         Saka?       @relation(fields: [sakaId], references: [id])
   
   supervisorId Int?
   supervisor   User?   @relation("TeacherStudents", fields: [supervisorId], references: [id])
@@ -63,11 +63,10 @@ model Department {
   users User[]
 }
 
-model InternshipLocation {
-  id      Int    @id @default(autoincrement())
-  name    String
-  address String?
-  users   User[]
+model Saka {
+  id        Int    @id @default(autoincrement())
+  saka_name String
+  users     User[]
 }
 
 model Attendance {
@@ -79,6 +78,7 @@ model Attendance {
   checkOut  DateTime?
   status    AttendanceStatus @default(PRESENT)
   isLate    Boolean @default(false)
+  checkInPhoto String?
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

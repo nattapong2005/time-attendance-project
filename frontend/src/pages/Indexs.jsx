@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, QrCode, FileText, BarChart3, LogIn, UserPlus, Shield } from 'lucide-react'
 

@@ -23,24 +23,24 @@ const AdminDashboard = () => {
             const token = localStorage.getItem('token')
             const headers = { Authorization: `Bearer ${token}` }
 
-            const [usersRes, attendanceRes] = await Promise.all([
-                axios.get(`${API_URL}/users`, { headers }),
+            const [statsRes, attendanceRes] = await Promise.all([
+                axios.get(`${API_URL}/reports/dashboard`, { headers }),
                 axios.get(`${API_URL}/attendance/monthly-report?month=${new Date().getMonth() + 1}&year=${new Date().getFullYear()}`, { headers })
             ])
 
-            const today = new Date().toDateString()
-            const todayAttendance = attendanceRes.data.filter(a =>
-                new Date(a.date).toDateString() === today
-            )
-
             setStats({
-                totalUsers: usersRes.data.length,
-                todayPresent: todayAttendance.length,
-                pendingLeaves: 0,
-                totalLocations: 0
+                totalUsers: statsRes.data.totalUsers,
+                todayPresent: statsRes.data.checkInsToday,
+                pendingLeaves: statsRes.data.pendingLeaves,
+                totalLocations: statsRes.data.totalLocations
             })
 
-            setRecentAttendance(attendanceRes.data.slice(0, 10))
+            // Sort by latest first
+            const sortedAttendance = attendanceRes.data.sort((a, b) => 
+                new Date(b.checkIn || b.date) - new Date(a.checkIn || a.date)
+            )
+
+            setRecentAttendance(sortedAttendance.slice(0, 10))
         } catch (err) {
             console.error('Error fetching dashboard:', err)
         } finally {

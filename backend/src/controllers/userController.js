@@ -2,7 +2,7 @@ import prisma from '../prisma.js';
 import bcrypt from 'bcrypt';
 
 export const createUser = async (req, res) => {
-    const { name, email, password, role, departmentId, locationId, studentId } = req.body;
+    const { name, email, password, role, departmentId, studentId } = req.body;
 
     // Validation
     if (!name || !email || !password || !role) {
@@ -34,8 +34,7 @@ export const createUser = async (req, res) => {
                 password: hashedPassword,
                 role,
                 studentId,
-                departmentId,
-                locationId
+                departmentId
             }
         });
         res.status(201).json({ id: user.id, name: user.name, email: user.email, role: user.role });
@@ -54,7 +53,6 @@ export const getUsers = async (req, res) => {
                 role: true,
                 studentId: true,
                 department: true,
-                internshipLocation: true,
                 createdAt: true
             }
         });
@@ -105,6 +103,58 @@ export const deleteUser = async (req, res) => {
     try {
         await prisma.user.delete({ where: { id: parseInt(id) } });
         res.json({ message: 'User deleted' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+};
+
+// Get current user profile
+export const getMe = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                studentId: true,
+                department: true,
+                createdAt: true
+            }
+        });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json(user);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+};
+
+// Update current user profile
+export const updateMe = async (req, res) => {
+    const userId = req.user.id;
+    const { name, email, password } = req.body;
+    const data = {};
+
+    if (name) data.name = name;
+    if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+        data.email = email;
+    }
+    if (password) {
+        data.password = await bcrypt.hash(password, 10);
+    }
+
+    try {
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data
+        });
+        res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

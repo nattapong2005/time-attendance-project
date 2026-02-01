@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { User, Mail, Lock, IdCard, UserPlus, Loader } from 'lucide-react'
+import { User, Mail, Lock, IdCard, UserPlus, Loader, Building2, BookOpen } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -12,11 +12,32 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     studentId: '',
+    departmentId: '',
+    sakaId: '',
     role: 'STUDENT'
   })
+  const [departments, setDepartments] = useState([])
+  const [sakas, setSakas] = useState([])
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    fetchMasterData()
+  }, [])
+
+  const fetchMasterData = async () => {
+    try {
+      const [deptRes, sakaRes] = await Promise.all([
+        axios.get(`${API_URL}/public/departments`),
+        axios.get(`${API_URL}/public/sakas`)
+      ])
+      setDepartments(deptRes.data)
+      setSakas(sakaRes.data)
+    } catch (err) {
+      console.error('Error fetching master data:', err)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -46,13 +67,15 @@ const Register = () => {
         email: formData.email,
         password: formData.password,
         studentId: formData.studentId,
+        departmentId: formData.departmentId,
+        sakaId: formData.sakaId,
         role: formData.role
       }
 
-      await axios.post(`${API_URL}/auth/register`, payload)
+      await axios.post(`${API_URL}/register`, payload)
 
       // Auto login after register
-      const loginRes = await axios.post(`${API_URL}/auth/login`, {
+      const loginRes = await axios.post(`${API_URL}/login`, {
         email: formData.email,
         password: formData.password
       })
@@ -127,6 +150,45 @@ const Register = () => {
                 className="input"
                 required
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-group">
+                <label className="form-label">
+                  <Building2 className="w-4 h-4 inline mr-1" />
+                  คณะ / แผนก
+                </label>
+                <select
+                  name="departmentId"
+                  value={formData.departmentId}
+                  onChange={handleChange}
+                  className="input"
+                  required
+                >
+                  <option value="">เลือกคณะ...</option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">
+                  <BookOpen className="w-4 h-4 inline mr-1" />
+                  สาขา
+                </label>
+                <select
+                  name="sakaId"
+                  value={formData.sakaId}
+                  onChange={handleChange}
+                  className="input"
+                  required
+                >
+                  <option value="">เลือกสาขา...</option>
+                  {sakas.map(saka => (
+                    <option key={saka.id} value={saka.id}>{saka.saka_name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

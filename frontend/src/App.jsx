@@ -16,6 +16,7 @@ import Dashboard from './pages/Dashboard'
 import ScanQRCode from './pages/ScanQRCode'
 import LeaveRequest from './pages/LeaveRequest'
 import About from './pages/About'
+import Profile from './pages/Profile'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard'
@@ -23,7 +24,7 @@ import UserManagement from './pages/admin/UserManagement'
 import AttendanceManagement from './pages/admin/AttendanceManagement'
 import LeaveManagement from './pages/admin/LeaveManagement'
 import DepartmentManagement from './pages/admin/DepartmentManagement'
-import LocationManagement from './pages/admin/LocationManagement'
+import SakaManagement from './pages/admin/SakaManagement'
 import Report from './pages/admin/Report'
 
 
@@ -55,16 +56,18 @@ function App() {
 
       {/* User Routes with UserLayout */}
       <Route element={<UserLayout />}>
-        <Route path="/home" element={<Home />} />
+        {/* <Route path="/home" element={<Home />} /> */}
+        
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/scan-qr-code" element={<ScanQRCode />} />
+        <Route path="/home" element={<ScanQRCode />} />
         <Route path="/leave-request" element={<LeaveRequest />} />
         <Route path="/about" element={<About />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       {/* Admin Routes with AdminLayout */}
       <Route path="/admin" element={
-        <ProtectedRoute allowedRoles={['ADMIN']}>
+        <ProtectedRoute allowedRoles={['ADMIN', 'TEACHER']}>
           <AdminLayout />
         </ProtectedRoute>
       }>
@@ -74,7 +77,7 @@ function App() {
         <Route path="attendance" element={<AttendanceManagement />} />
         <Route path="leaves" element={<LeaveManagement />} />
         <Route path="departments" element={<DepartmentManagement />} />
-        <Route path="locations" element={<LocationManagement />} />
+        <Route path="sakas" element={<SakaManagement />} />
         <Route path="reports" element={<Report />} />
       </Route>
 

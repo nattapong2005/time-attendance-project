@@ -6,6 +6,7 @@ import {
     Clock,
     FileText,
     Building2,
+    BookOpen,
     MapPin,
     BarChart3,
     LogOut,
@@ -34,7 +35,7 @@ const AdminLayout = () => {
         const parsedUser = JSON.parse(userData)
         setUser(parsedUser)
 
-        if (parsedUser.role !== 'ADMIN') {
+        if (parsedUser.role !== 'ADMIN' && parsedUser.role !== 'TEACHER') {
             navigate('/home')
         }
     }, [navigate])
@@ -46,12 +47,12 @@ const AdminLayout = () => {
     }
 
     const navLinks = [
-        { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/admin/dashboard', label: 'ภาพรวม', icon: LayoutDashboard },
         { path: '/admin/users', label: 'จัดการผู้ใช้', icon: Users },
         { path: '/admin/attendance', label: 'การลงเวลา', icon: Clock },
         { path: '/admin/leaves', label: 'คำขอลา', icon: FileText },
         { path: '/admin/departments', label: 'แผนก', icon: Building2 },
-        { path: '/admin/locations', label: 'สถานที่ฝึกงาน', icon: MapPin },
+        { path: '/admin/sakas', label: 'สาขา', icon: BookOpen },
         { path: '/admin/reports', label: 'รายงาน', icon: BarChart3 },
     ]
 

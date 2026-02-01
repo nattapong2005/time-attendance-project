@@ -26,7 +26,7 @@ export const login = async (req, res) => {
 };
 
 export const register = async (req, res) => {
-    const { name, email, password, role, studentId } = req.body;
+    const { name, email, password, role, studentId, departmentId, sakaId } = req.body;
     try {
         // Validation
         if (!name || !email || !password || !studentId) {
@@ -56,7 +56,9 @@ export const register = async (req, res) => {
                 email,
                 password: hashedPassword,
                 role: userRole,
-                studentId
+                studentId,
+                departmentId: departmentId ? parseInt(departmentId) : undefined,
+                sakaId: sakaId ? parseInt(sakaId) : undefined
             }
         });
 

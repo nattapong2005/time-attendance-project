@@ -1,6 +1,26 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { User, Calendar, TrendingUp, AlertCircle, Clock } from 'lucide-react'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js'
+import { Bar } from 'react-chartjs-2'
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+)
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -8,6 +28,7 @@ const Dashboard = () => {
   const [user, setUser] = useState(null)
   const [attendanceHistory, setAttendanceHistory] = useState([])
   const [stats, setStats] = useState({ present: 0, late: 0, absent: 0 })
+  const [monthlyStats, setMonthlyStats] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -32,11 +53,53 @@ const Dashboard = () => {
       const absent = response.data.filter(r => r.status === 'ABSENT').length
 
       setStats({ present, late, absent })
+
+      // Calculate monthly statistics
+      calculateMonthlyStats(response.data)
     } catch (err) {
       console.error('Error fetching attendance:', err)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const calculateMonthlyStats = (data) => {
+    const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
+    const last6Months = []
+    const currentDate = new Date()
+
+    // Get last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      last6Months.push({
+        key: monthKey,
+        month: monthNames[date.getMonth()],
+        year: date.getFullYear(),
+        present: 0,
+        late: 0,
+        absent: 0
+      })
+    }
+
+    // Count attendance by month
+    data.forEach(record => {
+      const recordDate = new Date(record.date)
+      const recordKey = `${recordDate.getFullYear()}-${String(recordDate.getMonth() + 1).padStart(2, '0')}`
+
+      const monthData = last6Months.find(m => m.key === recordKey)
+      if (monthData) {
+        if (record.status === 'ABSENT') {
+          monthData.absent++
+        } else if (record.isLate) {
+          monthData.late++
+        } else {
+          monthData.present++
+        }
+      }
+    })
+
+    setMonthlyStats(last6Months)
   }
 
   const formatDate = (dateString) => {
@@ -111,6 +174,104 @@ const Dashboard = () => {
             </div>
           )
         })}
+      </div>
+
+      {/* Monthly Attendance Chart */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <TrendingUp className="w-5 h-5 text-slate-400" />
+          <h3 className="text-lg font-semibold text-slate-900">สถิติการเข้างานรายเดือน (6 เดือนล่าสุด)</h3>
+        </div>
+        <div className="h-80">
+          <Bar
+            data={{
+              labels: monthlyStats.map(m => `${m.month} ${m.year}`),
+              datasets: [
+                {
+                  label: 'มาปกติ',
+                  data: monthlyStats.map(m => m.present),
+                  backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                  borderColor: 'rgb(34, 197, 94)',
+                  borderWidth: 2,
+                  borderRadius: 6,
+                },
+                {
+                  label: 'มาสาย',
+                  data: monthlyStats.map(m => m.late),
+                  backgroundColor: 'rgba(245, 158, 11, 0.8)',
+                  borderColor: 'rgb(245, 158, 11)',
+                  borderWidth: 2,
+                  borderRadius: 6,
+                },
+                {
+                  label: 'ขาดงาน',
+                  data: monthlyStats.map(m => m.absent),
+                  backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                  borderColor: 'rgb(239, 68, 68)',
+                  borderWidth: 2,
+                  borderRadius: 6,
+                },
+              ],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'top',
+                  labels: {
+                    padding: 15,
+                    font: {
+                      size: 12,
+                      family: 'Inter, system-ui, sans-serif',
+                    },
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                  },
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  padding: 12,
+                  titleFont: {
+                    size: 14,
+                  },
+                  bodyFont: {
+                    size: 13,
+                  },
+                  callbacks: {
+                    label: function (context) {
+                      return `${context.dataset.label}: ${context.parsed.y} วัน`
+                    }
+                  }
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    stepSize: 1,
+                    font: {
+                      size: 11,
+                    },
+                  },
+                  grid: {
+                    color: 'rgba(0, 0, 0, 0.05)',
+                  },
+                },
+                x: {
+                  grid: {
+                    display: false,
+                  },
+                  ticks: {
+                    font: {
+                      size: 11,
+                    },
+                  },
+                },
+              },
+            }}
+          />
+        </div>
       </div>
 
       {/* Attendance History */}

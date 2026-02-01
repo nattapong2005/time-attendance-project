@@ -1,11 +1,17 @@
 import prisma from '../prisma.js';
+import fs from 'fs';
+import path from 'path';
+
+// Helper: Get Thai date (UTC+7) as UTC midnight
+const getThaiDateUTC = (date = new Date()) => {
+    const thaiTime = new Date(date.getTime() + (7 * 60 * 60 * 1000));
+    return new Date(Date.UTC(thaiTime.getUTCFullYear(), thaiTime.getUTCMonth(), thaiTime.getUTCDate()));
+};
 
 export const checkIn = async (req, res) => {
     const userId = req.user.id;
-    const today = new Date();
-    // Normalize to start of day for unique constraint
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    // Normalize to start of day for unique constraint (Thai Date)
+    const startOfDay = getThaiDateUTC();
 
     try {
         // Check if already checked in today using findUnique or findFirst
@@ -21,8 +27,28 @@ export const checkIn = async (req, res) => {
         }
 
         const now = new Date();
-        // Rule: Late if after 9:00 AM
-        const isLate = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 0);
+        // Rule: Late if after 9:00 AM (Thai Time)
+        const thaiNow = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+        const isLate = thaiNow.getUTCHours() > 9 || (thaiNow.getUTCHours() === 9 && thaiNow.getUTCMinutes() > 0);
+
+        const { photo } = req.body;
+        let photoPath = null;
+
+        if (photo) {
+            // Save photo
+            const base64Data = photo.replace(/^data:image\/\w+;base64,/, "");
+            const buffer = Buffer.from(base64Data, 'base64');
+            const filename = `checkin-${userId}-${Date.now()}.jpg`;
+            const uploadDir = path.join(process.cwd(), 'uploads');
+
+            // Ensure directory exists
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            fs.writeFileSync(path.join(uploadDir, filename), buffer);
+            photoPath = `/uploads/${filename}`;
+        }
 
         const attendance = await prisma.attendance.create({
             data: {
@@ -30,7 +56,8 @@ export const checkIn = async (req, res) => {
                 date: startOfDay, // Use normalized date for unique constraint
                 checkIn: now,
                 status: 'PRESENT',
-                isLate
+                isLate,
+                checkInPhoto: photoPath
             }
         });
 
@@ -46,18 +73,16 @@ export const checkIn = async (req, res) => {
 
 export const checkOut = async (req, res) => {
     const userId = req.user.id;
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    const startOfDay = getThaiDateUTC();
+    // End of day is start of next day for lt comparison
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(endOfDay.getDate() + 1);
 
     try {
         const attendance = await prisma.attendance.findFirst({
             where: {
                 userId,
-                date: {
-                    gte: startOfDay,
-                    lt: endOfDay
-                }
+                date: startOfDay // Match strictly by the normalized date
             }
         });
 
@@ -93,6 +118,23 @@ export const getMyAttendance = async (req, res) => {
     }
 };
 
+export const getTodayAttendance = async (req, res) => {
+    const userId = req.user.id;
+    const startOfDay = getThaiDateUTC();
+
+    try {
+        const attendance = await prisma.attendance.findFirst({
+            where: {
+                userId,
+                date: startOfDay
+            }
+        });
+        res.json(attendance);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // Admin/Teacher: View student attendance
 export const getStudentAttendance = async (req, res) => {
     const { studentId } = req.params;
@@ -110,9 +152,8 @@ export const getStudentAttendance = async (req, res) => {
 // Admin: Manual absence recording or adjustment
 export const recordAbsence = async (req, res) => {
     const { userId, date } = req.body;
-    // date should be parseable
-    const attendanceDate = new Date(date);
-    attendanceDate.setHours(0, 0, 0, 0);
+    // date should be parseable, treat as Thai date
+    const attendanceDate = getThaiDateUTC(new Date(date));
 
     try {
         const existing = await prisma.attendance.findFirst({
@@ -129,6 +170,49 @@ export const recordAbsence = async (req, res) => {
             }
         });
         res.json(attendance);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const createAttendance = async (req, res) => {
+    try {
+        const { userId, date, checkIn, checkOut, status, isLate } = req.body;
+
+        const attendanceDate = getThaiDateUTC(new Date(date));
+
+        const existing = await prisma.attendance.findFirst({
+            where: { userId, date: attendanceDate }
+        });
+
+        if (existing) {
+            return res.status(400).json({ error: 'Attendance record for this user and date already exists' });
+        }
+
+        const data = {
+            userId: parseInt(userId),
+            date: attendanceDate,
+            status: status || 'PRESENT',
+            isLate: isLate || false
+        };
+
+        if (checkIn) data.checkIn = new Date(checkIn);
+        if (checkOut) data.checkOut = new Date(checkOut);
+
+        const newRecord = await prisma.attendance.create({ data });
+        res.json(newRecord);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const deleteAttendance = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await prisma.attendance.delete({
+            where: { id: parseInt(id) }
+        });
+        res.json({ message: 'Attendance record deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -158,8 +242,9 @@ export const getMonthlyReport = async (req, res) => {
     const { month, year } = req.query; // 1-12, YYYY
     if (!month || !year) return res.status(400).json({ error: 'Month and Year required' });
 
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0); // Last day of month
+    // Construct dates in UTC to match the storage strategy
+    const startDate = new Date(Date.UTC(year, month - 1, 1));
+    const endDate = new Date(Date.UTC(year, month, 0)); // Last day of month
 
     try {
         const attendance = await prisma.attendance.findMany({

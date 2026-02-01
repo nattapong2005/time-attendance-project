@@ -43,47 +43,47 @@ export const deleteDepartment = async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 };
-
-// --- LOCATIONS ---
-export const createLocation = async (req, res) => {
-    const { name, address } = req.body;
+// --- SAKAS ---
+export const createSaka = async (req, res) => {
+    const { saka_name } = req.body;
     try {
-        const loc = await prisma.internshipLocation.create({ data: { name, address } });
-        res.status(201).json(loc);
+        const saka = await prisma.saka.create({ data: { saka_name } });
+        res.status(201).json(saka);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 };
 
-export const getLocations = async (req, res) => {
+export const getSakas = async (req, res) => {
     try {
-        const locs = await prisma.internshipLocation.findMany();
-        res.json(locs);
+        const sakas = await prisma.saka.findMany();
+        res.json(sakas);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 };
 
-export const updateLocation = async (req, res) => {
+export const updateSaka = async (req, res) => {
     const { id } = req.params;
-    const { name, address } = req.body;
+    const { saka_name } = req.body;
     try {
-        const loc = await prisma.internshipLocation.update({
+        const saka = await prisma.saka.update({
             where: { id: parseInt(id) },
-            data: { name, address }
+            data: { saka_name }
         });
-        res.json(loc);
+        res.json(saka);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 };
 
-export const deleteLocation = async (req, res) => {
+export const deleteSaka = async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.internshipLocation.delete({ where: { id: parseInt(id) } });
-        res.json({ message: 'Location deleted' });
+        await prisma.saka.delete({ where: { id: parseInt(id) } });
+        res.json({ message: 'Saka deleted' });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 };
+

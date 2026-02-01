@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 const UserManagement = () => {
     const [users, setUsers] = useState([])
     const [departments, setDepartments] = useState([])
-    const [locations, setLocations] = useState([])
+    const [sakas, setSakas] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
     const [editingUser, setEditingUser] = useState(null)
@@ -19,7 +19,7 @@ const UserManagement = () => {
         role: 'STUDENT',
         studentId: '',
         departmentId: '',
-        locationId: ''
+        sakaId: ''
     })
     const [error, setError] = useState('')
 
@@ -32,15 +32,15 @@ const UserManagement = () => {
             const token = localStorage.getItem('token')
             const headers = { Authorization: `Bearer ${token}` }
 
-            const [usersRes, deptsRes, locsRes] = await Promise.all([
+            const [usersRes, deptsRes, sakasRes] = await Promise.all([
                 axios.get(`${API_URL}/users`, { headers }),
                 axios.get(`${API_URL}/departments`, { headers }),
-                axios.get(`${API_URL}/locations`, { headers })
+                axios.get(`${API_URL}/sakas`, { headers })
             ])
 
             setUsers(usersRes.data)
             setDepartments(deptsRes.data)
-            setLocations(locsRes.data)
+            setSakas(sakasRes.data)
         } catch (err) {
             console.error('Error fetching data:', err)
         } finally {
@@ -65,7 +65,7 @@ const UserManagement = () => {
             const payload = {
                 ...formData,
                 departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
-                locationId: formData.locationId ? parseInt(formData.locationId) : null
+                sakaId: formData.sakaId ? parseInt(formData.sakaId) : null
             }
 
             if (editingUser) {
@@ -86,7 +86,7 @@ const UserManagement = () => {
         setEditingUser(null)
         setFormData({
             name: '', email: '', password: '', role: 'STUDENT',
-            studentId: '', departmentId: '', locationId: ''
+            studentId: '', departmentId: '', sakaId: ''
         })
         setShowModal(true)
     }
@@ -100,7 +100,7 @@ const UserManagement = () => {
             role: user.role,
             studentId: user.studentId || '',
             departmentId: user.departmentId || '',
-            locationId: user.locationId || ''
+            sakaId: user.sakaId || ''
         })
         setShowModal(true)
     }
@@ -277,7 +277,7 @@ const UserManagement = () => {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         <div className="form-group">
                                             <label className="form-label">แผนก</label>
                                             <select
@@ -292,17 +292,18 @@ const UserManagement = () => {
                                                 ))}
                                             </select>
                                         </div>
+                        
                                         <div className="form-group">
-                                            <label className="form-label">สถานที่ฝึกงาน</label>
+                                            <label className="form-label">สาขา</label>
                                             <select
-                                                name="locationId"
-                                                value={formData.locationId}
+                                                name="sakaId"
+                                                value={formData.sakaId}
                                                 onChange={handleChange}
                                                 className="input"
                                             >
-                                                <option value="">เลือกสถานที่</option>
-                                                {locations.map(loc => (
-                                                    <option key={loc.id} value={loc.id}>{loc.name}</option>
+                                                <option value="">เลือกสาขา</option>
+                                                {sakas.map(saka => (
+                                                    <option key={saka.id} value={saka.id}>{saka.saka_name}</option>
                                                 ))}
                                             </select>
                                         </div>

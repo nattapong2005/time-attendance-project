@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { QrCode, FileText, LayoutDashboard, Clock } from 'lucide-react'
+import { QrCode, FileText, LayoutDashboard, Clock, MapPin } from 'lucide-react'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -10,28 +10,46 @@ const Home = () => {
   const [todayAttendance, setTodayAttendance] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
-    const userData = localStorage.getItem('user')
-    if (userData) {
-      setUser(JSON.parse(userData))
-    }
+    fetchUserProfile()
     checkTodayAttendance()
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
   }, [])
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${API_URL}/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setUser(response.data)
+      // Update local storage to keep it fresh
+      localStorage.setItem('user', JSON.stringify(response.data))
+    } catch (err) {
+      console.error('Error fetching user profile:', err)
+      // Fallback to local storage if API fails
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        setUser(JSON.parse(userData))
+      }
+    }
+  }
 
   const checkTodayAttendance = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(`${API_URL}/attendance/my-history`, {
+      const response = await axios.get(`${API_URL}/attendance/today`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
-      const today = new Date().toDateString()
-      const todayRecord = response.data.find(record =>
-        new Date(record.date).toDateString() === today
-      )
-
-      setTodayAttendance(todayRecord || null)
+      setTodayAttendance(response.data || null)
     } catch (err) {
       console.error('Error checking attendance:', err)
     }
@@ -80,13 +98,6 @@ const Home = () => {
     return new Date(dateString).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
   }
 
-  const today = new Date().toLocaleDateString('th-TH', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-
   const quickActions = [
     { to: '/scan-qr-code', icon: QrCode, title: 'Scan QR', desc: 'สแกนลงเวลา', color: 'text-blue-600' },
     { to: '/leave-request', icon: FileText, title: 'ขอลา', desc: 'ลาป่วย / ลากิจ', color: 'text-amber-600' },
@@ -99,7 +110,22 @@ const Home = () => {
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-slate-500 mb-1">{today}</p>
+            <p className="text-sm text-slate-500 mb-1">
+              {currentTime.toLocaleDateString('th-TH', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+              {' '} | {' '}
+              <span className="font-mono font-bold text-slate-700">
+                {currentTime.toLocaleTimeString('th-TH', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                })}
+              </span>
+            </p>
             <h1 className="text-2xl font-bold text-slate-900">
               สวัสดี, {user?.name}
             </h1>
@@ -139,8 +165,8 @@ const Home = () => {
 
         {message && (
           <div className={`mb-4 p-3 rounded-lg text-sm text-center ${message.includes('สำเร็จ')
-              ? 'bg-green-50 text-green-700'
-              : 'bg-red-50 text-red-700'
+            ? 'bg-green-50 text-green-700'
+            : 'bg-red-50 text-red-700'
             }`}>
             {message}
           </div>
